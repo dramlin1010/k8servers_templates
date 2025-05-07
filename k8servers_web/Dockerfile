@@ -9,7 +9,7 @@ RUN apk update && apk add --no-cache \
     libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev libssh2-dev linux-headers \
     && rm -rf /var/cache/apk/*
 
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS oniguruma-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     gd mysqli pdo_mysql zip soap sockets xml mbstring && pecl install ssh2-1.3.1 && docker-php-ext-enable ssh2 && apk del .build-deps
