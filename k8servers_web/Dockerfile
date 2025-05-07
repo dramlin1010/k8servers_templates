@@ -21,7 +21,7 @@ RUN rm -f /etc/nginx/nginx.conf && \
     mkdir -p /var/log/nginx /var/lib/nginx && \
     chown -R nginx:nginx /var/log/nginx /var/lib/nginx
 
-COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN mkdir -p /run/php && \
     chown -R nginx:nginx /run/php
