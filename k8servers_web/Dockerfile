@@ -4,6 +4,11 @@ ENV APP_ENV=production
 ENV NGINX_WORKER_PROCESSES=auto
 ENV NGINX_WORKER_CONNECTIONS=1024
 
+RUN sed -i 's|error_log .*|error_log /dev/stderr;|' \
+           /etc/nginx/nginx.conf \
+    && sed -i 's|error_log = .*|error_log = /dev/stderr|' \
+           /etc/php8/php-fpm.conf
+
 RUN apk update && apk add --no-cache \
     nginx supervisor curl git \
     libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev libssh2-dev linux-headers \
