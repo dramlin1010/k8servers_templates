@@ -15,20 +15,17 @@ RUN apk add --no-cache \
       freetype-dev \
       libxml2-dev \
       linux-headers \
-      $PHPIZE_DEPS oniguruma-dev \
-  && docker-php-ext-configure gd --with-freetype --with-jpeg \
-  && docker-php-ext-install -j$(nproc) \
-      gd \
-      mysqli \
-      pdo_mysql \
-      zip \
-      soap \
-      sockets \
-      xml \
-      mbstring \
-  && pecl install ssh2-1.3.1 \
-  && docker-php-ext-enable ssh2 \
-  && rm -rf /var/cache/apk/*
+      oniguruma-dev \
+      libssh2-dev \
+      openssl-dev \
+      $PHPIZE_DEPS \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+         gd mysqli pdo_mysql zip soap sockets xml mbstring \
+    && pecl install ssh2-1.3.1 \
+    && docker-php-ext-enable ssh2 \
+    && rm -rf /var/cache/apk/*
+
 
 RUN sed -i \
       -e 's|error_log .*|error_log /dev/stderr;|' \
