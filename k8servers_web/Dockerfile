@@ -1,37 +1,53 @@
 FROM php:8.2-fpm-alpine
 
-ENV APP_ENV=production
-ENV NGINX_WORKER_PROCESSES=auto
-ENV NGINX_WORKER_CONNECTIONS=1024
+ENV APP_ENV=production \
+    NGINX_WORKER_PROCESSES=auto \
+    NGINX_WORKER_CONNECTIONS=1024
 
-RUN sed -i 's|error_log .*|error_log /dev/stderr;|' \
-           /etc/nginx/nginx.conf \
-    && sed -i 's|error_log = .*|error_log = /dev/stderr|' \
-           /etc/php8/php-fpm.conf
+RUN apk add --no-cache \
+      nginx \
+      supervisor \
+      curl \
+      git \
+      libzip-dev \
+      libpng-dev \
+      jpeg-dev \
+      freetype-dev \
+      libxml2-dev \
+      linux-headers \
+      $PHPIZE_DEPS oniguruma-dev \
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install -j$(nproc) \
+      gd \
+      mysqli \
+      pdo_mysql \
+      zip \
+      soap \
+      sockets \
+      xml \
+      mbstring \
+  && pecl install ssh2-1.3.1 \
+  && docker-php-ext-enable ssh2 \
+  && rm -rf /var/cache/apk/*
 
-RUN apk update && apk add --no-cache \
-    nginx supervisor curl git \
-    libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev libssh2-dev linux-headers \
-    && rm -rf /var/cache/apk/*
+RUN sed -i \
+      -e 's|error_log .*|error_log /dev/stderr;|' \
+      -e 's|access_log .*|access_log /dev/stdout;|' \
+      /etc/nginx/nginx.conf \
+  && sed -i \
+      -e 's|error_log = .*|error_log = /dev/stderr|' \
+      /usr/local/etc/php-fpm.conf \
+  && sed -i \
+      -e 's|access.log = .*|access.log = /dev/stdout|' \
+      /usr/local/etc/php-fpm.d/www.conf
 
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS oniguruma-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-    gd mysqli pdo_mysql zip soap sockets xml mbstring && pecl install ssh2-1.3.1 && docker-php-ext-enable ssh2 && apk del .build-deps
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 
-COPY ./nginx/default.conf /etc/nginx/http.d/default.conf
-RUN rm -f /etc/nginx/nginx.conf && \
-    mkdir -p /var/log/nginx /var/lib/nginx && \
-    chown -R nginx:nginx /var/log/nginx /var/lib/nginx
+RUN mkdir -p /run/php /var/log/nginx /var/lib/nginx /var/www/html \
+  && chown -R nginx:nginx /run/php /var/log/nginx /var/lib/nginx /var/www/html
 
 COPY ./supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN mkdir -p /run/php && \
-    chown -R nginx:nginx /run/php
-
-RUN mkdir -p /var/www/html && chown nginx:nginx /var/www/html
-
 WORKDIR /var/www/html
-
 EXPOSE 80
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
