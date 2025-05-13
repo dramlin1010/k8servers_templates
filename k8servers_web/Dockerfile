@@ -19,32 +19,40 @@ RUN apk add --no-cache \
       libssh2-dev \
       openssl-dev \
       $PHPIZE_DEPS \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" \
-         gd mysqli pdo_mysql zip soap sockets xml mbstring \
-    && pecl install ssh2-1.3.1 \
-    && docker-php-ext-enable ssh2 \
-    && rm -rf /var/cache/apk/*
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install -j"$(nproc)" \
+       gd \
+       mysqli \
+       pdo_mysql \
+       zip \
+       soap \
+       sockets \
+       xml \
+       mbstring \
+  && pecl install ssh2-1.3.1 \
+  && docker-php-ext-enable ssh2 \
+  && rm -rf /var/cache/apk/*
 
-
-RUN sed -i \
-      -e 's|error_log .*|error_log /dev/stderr;|' \
-      -e 's|access_log .*|access_log /dev/stdout;|' \
+# Parcheando el error_log y std*
+RUN sed -i -E \
+      -e 's|^\s*error_log .*|error_log /dev/stderr;|' \
+      -e 's|^\s*access_log .*|access_log /dev/stdout;|' \
       /etc/nginx/nginx.conf \
-  && sed -i \
-      -e 's|error_log = .*|error_log = /dev/stderr|' \
+  && sed -i -E \
+      -e 's|^\s*error_log = .*|error_log = /dev/stderr|' \
       /usr/local/etc/php-fpm.conf \
-  && sed -i \
-      -e 's|access.log = .*|access.log = /dev/stdout|' \
+  && sed -i -E \
+      -e 's|^\s*access.log = .*|access.log = /dev/stdout|' \
       /usr/local/etc/php-fpm.d/www.conf
 
 COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 
 RUN mkdir -p /run/php /var/log/nginx /var/lib/nginx /var/www/html \
-  && chown -R nginx:nginx /run/php /var/log/nginx /var/lib/nginx /var/www/html
+    && chown -R nginx:nginx /run/php /var/log/nginx /var/lib/nginx /var/www/html
 
 COPY ./supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /var/www/html
 EXPOSE 80
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+CMD ["/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf"]
