@@ -2,6 +2,9 @@ FROM php:8.2-fpm-alpine
 
 WORKDIR /var/www/html
 
+RUN addgroup -g 101 -S nginx && \
+    adduser -u 101 -S -G nginx -h /var/cache/nginx -s /sbin/nologin nginx
+
 RUN apk add --no-cache \
       git \
       libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev \
@@ -29,5 +32,8 @@ RUN sed -i -E \
       -e 's|^(\s*);?error_log\s*=\s*.*|\1error_log = /dev/stderr|' \
       -e 's|^(\s*)daemonize\s*=\s*yes|\1daemonize = no|' \
       /usr/local/etc/php-fpm.conf
+
+RUN mkdir -p /run/php && \
+    chown -R nginx:nginx /run/php
 
 EXPOSE 9000
