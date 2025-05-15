@@ -66,4 +66,8 @@ RUN mkdir -p /run/php /var/www/html /var/lib/nginx/tmp \
     && chown -R nginx:nginx /run/php /var/www/html /var/lib/nginx \
     && chmod 755 /var/www/html
 
-COPY ./supervisor/supervisord.conf 
+COPY ./supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+WORKDIR /var/www/html
+EXPOSE 80
+CMD ["/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf"]
