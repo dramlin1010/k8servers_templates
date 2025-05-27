@@ -14,8 +14,7 @@ RUN apk add --no-cache \
   && docker-php-ext-install -j"$(nproc)" \
        gd mysqli pdo_mysql zip soap sockets xml mbstring \
   && pecl install ssh2-1.3.1 \
-  && pecl install mongodb \
-  && docker-php-ext-enable ssh2 mongodb \
+  && docker-php-ext-enable ssh2\
   && rm -rf /var/cache/apk/*
 
 RUN sed -i -E \
