@@ -15,8 +15,7 @@ RUN apk add --no-cache --virtual .build-deps \
        gd mysqli pdo_mysql zip soap sockets xml mbstring \
   && pecl channel-update pecl.php.net \
   && pecl install ssh2-1.3.1 \
-  && pecl install mongodb-1.17.0 \
-  && docker-php-ext-enable ssh2 mongodb \
+  && docker-php-ext-enable ssh2 \
   && apk del .build-deps \
   && rm -rf /var/cache/apk/*
 
