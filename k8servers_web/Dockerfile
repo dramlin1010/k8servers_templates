@@ -9,14 +9,19 @@ RUN apk add --no-cache \
       git \
       libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev \
       linux-headers oniguruma-dev libssh2-dev openssl-dev \
-      $PHPIZE_DEPS \
   && docker-php-ext-configure gd --with-freetype --with-jpeg \
   && docker-php-ext-install -j"$(nproc)" \
        gd mysqli pdo_mysql zip soap sockets xml mbstring \
   && pecl install ssh2-1.3.1 \
+  && docker-php-ext-enable ssh2
+
+RUN apk add --no-cache --virtual .phpize-deps-mongodb $PHPIZE_DEPS \
+  && pecl channel-update pecl.php.net \
   && pecl install mongodb \
-  && docker-php-ext-enable ssh2 mongodb \
-  && rm -rf /var/cache/apk/*
+  && docker-php-ext-enable mongodb \
+  && apk del .phpize-deps-mongodb
+
+RUN rm -rf /var/cache/apk/*
 
 RUN sed -i -E \
       -e 's|^listen\s*=\s*.*|listen = 0.0.0.0:9000|' \
