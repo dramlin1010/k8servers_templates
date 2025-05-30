@@ -5,23 +5,20 @@ WORKDIR /var/www/html
 RUN addgroup -g 101 -S nginx && \
     adduser -u 101 -S -G nginx -h /var/cache/nginx -s /sbin/nologin nginx
 
-RUN apk add --no-cache \
+RUN apk add --no-cache --virtual .build-deps \
       git \
+      $PHPIZE_DEPS \
       libzip-dev libpng-dev jpeg-dev freetype-dev libxml2-dev \
       linux-headers oniguruma-dev libssh2-dev openssl-dev \
   && docker-php-ext-configure gd --with-freetype --with-jpeg \
   && docker-php-ext-install -j"$(nproc)" \
        gd mysqli pdo_mysql zip soap sockets xml mbstring \
-  && pecl install ssh2-1.3.1 \
-  && docker-php-ext-enable ssh2
-
-RUN apk add --no-cache --virtual .phpize-deps-mongodb $PHPIZE_DEPS \
   && pecl channel-update pecl.php.net \
+  && pecl install ssh2-1.3.1 \
   && pecl install mongodb \
-  && docker-php-ext-enable mongodb \
-  && apk del .phpize-deps-mongodb
-
-RUN rm -rf /var/cache/apk/*
+  && docker-php-ext-enable ssh2 mongodb \
+  && apk del .build-deps \
+  && rm -rf /var/cache/apk/*
 
 RUN sed -i -E \
       -e 's|^listen\s*=\s*.*|listen = 0.0.0.0:9000|' \
