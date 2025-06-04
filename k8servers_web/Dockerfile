@@ -38,4 +38,13 @@ RUN sed -i -E \
 RUN mkdir -p /run/php && \
     chown -R nginx:nginx /run/php
 
+RUN mkdir -p /var/lib/php/sessions && \
+    chown -R nginx:nginx /var/lib/php/sessions && \
+    chmod -R 700 /var/lib/php/sessions
+
+COPY --from=php:8.2-fpm-alpine /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+RUN sed -i 's#^;session.save_path = "/tmp"#session.save_path = "/var/lib/php/sessions"#' /usr/local/etc/php/php.ini && \
+    sed -i 's#^session.save_path = "/tmp"#session.save_path = "/var/lib/php/sessions"#' /usr/local/etc/php/php.ini && \
+    sed -i 's#^session.gc_probability = 0#session.gc_probability = 1#' /usr/local/etc/php/php.ini
+
 EXPOSE 9000
