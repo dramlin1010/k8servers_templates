@@ -47,4 +47,10 @@ RUN sed -i 's#^;session.save_path = "/tmp"#session.save_path = "/var/lib/php/ses
     sed -i 's#^session.save_path = "/tmp"#session.save_path = "/var/lib/php/sessions"#' /usr/local/etc/php/php.ini && \
     sed -i 's#^session.gc_probability = 0#session.gc_probability = 1#' /usr/local/etc/php/php.ini
 
+RUN { \
+      echo "session.cookie_domain = .k8servers.es"; \
+      echo "session.cookie_secure = On"; \
+      echo "session.cookie_httponly = On"; \
+    } >> /usr/local/etc/php/php.ini
+
 EXPOSE 9000
